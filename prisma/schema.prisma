@@ -1,0 +1,83 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Project {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String   @db.VarChar(200)
+  location          String   @db.VarChar(300)
+  capacityMw        Decimal? @map("capacity_mw") @db.Decimal(10, 2)
+  capacityMwh       Decimal? @map("capacity_mwh") @db.Decimal(10, 2)
+  phase             String   @db.VarChar(20)
+  targetSigningDate DateTime? @map("target_signing_date") @db.Date
+  targetStartDate   DateTime? @map("target_start_date") @db.Date
+  targetEndDate     DateTime? @map("target_end_date") @db.Date
+  notes             String?
+  isHighRisk        Boolean  @default(false) @map("is_high_risk")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt         DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  checklistItems ChecklistItem[]
+
+  @@map("projects")
+}
+
+model ChecklistItem {
+  id              String    @id @default(uuid()) @db.Uuid
+  projectId       String    @map("project_id") @db.Uuid
+  templateId      String?   @map("template_id") @db.Uuid
+  name            String    @db.VarChar(300)
+  category        String    @db.VarChar(20)
+  phase           String    @db.VarChar(20)
+  riskDescription String    @map("risk_description")
+  deadline        DateTime? @db.Date
+  isComplete      Boolean   @default(false) @map("is_complete")
+  completedAt     DateTime? @map("completed_at") @db.Timestamptz()
+  sortOrder       Int       @default(0) @map("sort_order")
+  createdAt       DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt       DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  project     Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  template    ChecklistTemplate? @relation(fields: [templateId], references: [id])
+  attachments Attachment[]
+
+  @@index([projectId])
+  @@map("checklist_items")
+}
+
+model Attachment {
+  id              String   @id @default(uuid()) @db.Uuid
+  checklistItemId String   @map("checklist_item_id") @db.Uuid
+  originalName    String   @map("original_name") @db.VarChar(500)
+  storedName      String   @map("stored_name") @db.VarChar(500)
+  mimeType        String   @map("mime_type") @db.VarChar(100)
+  sizeBytes       Int      @map("size_bytes")
+  uploadedAt      DateTime @default(now()) @map("uploaded_at") @db.Timestamptz()
+
+  checklistItem ChecklistItem @relation(fields: [checklistItemId], references: [id], onDelete: Cascade)
+
+  @@index([checklistItemId])
+  @@map("attachments")
+}
+
+model ChecklistTemplate {
+  id              String   @id @default(uuid()) @db.Uuid
+  name            String   @db.VarChar(300)
+  category        String   @db.VarChar(20)
+  phase           String   @db.VarChar(20)
+  riskDescription String   @map("risk_description")
+  defaultDays     Int      @default(30) @map("default_days")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  checklistItems ChecklistItem[]
+
+  @@unique([name, phase])
+  @@map("checklist_templates")
+}

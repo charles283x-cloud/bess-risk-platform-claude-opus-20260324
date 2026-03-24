@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: bess_risk
+      POSTGRES_USER: bess
+      POSTGRES_PASSWORD: bess_password_tokyo_2026
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bess -d bess_risk"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://bess:bess_password_tokyo_2026@db:5432/bess_risk
+      ADMIN_USERNAME: admin
+      ADMIN_PASSWORD: "$$2b$$10$$Iv/zGOyGjOPjzCWbB373sOtwbSeK5UXyhnO6U6PFbhuL5wTYt9Bx2"
+      VIEWER_USERNAME: viewer
+      VIEWER_PASSWORD: "$$2b$$10$$AJQ/3CDflA8i0a/qxq93/e5LS4dUIsl33pHfYsCRtOSQwbgzotXPu"
+      SESSION_SECRET: 09b3f4ac2acc1e5b9320581e8189eae8
+      NEXT_PUBLIC_APP_NAME: 储能项目风控平台
+      UPLOAD_DIR: /app/uploads
+      MAX_FILE_SIZE: "20971520"
+    volumes:
+      - uploads:/app/uploads
+
+volumes:
+  pgdata:
+  uploads:
