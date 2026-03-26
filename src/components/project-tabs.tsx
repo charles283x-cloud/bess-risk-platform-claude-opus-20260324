@@ -22,8 +22,10 @@ interface ProjectTabsProps {
   milestones: Array<{
     id: string;
     name: string;
-    plannedDate: string;
-    actualDate: string | null;
+    plannedStartDate: string;
+    plannedEndDate: string;
+    actualStartDate: string | null;
+    actualEndDate: string | null;
     status: string;
     notes: string | null;
     sortOrder: number;

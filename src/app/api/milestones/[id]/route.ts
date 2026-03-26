@@ -10,21 +10,31 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const body = await request.json();
 
-    // Auto-set actualDate when status is set to "completed" and no actualDate provided
-    const autoActualDate =
-      body.status === "completed" && body.actualDate === undefined;
+    // Auto-set actualEndDate when status is "completed" and no actualEndDate provided
+    const autoActualEnd =
+      body.status === "completed" && body.actualEndDate === undefined;
+    // Auto-set actualStartDate when status changes to "in_progress" and no actualStartDate
+    const autoActualStart =
+      body.status === "in_progress" && body.actualStartDate === undefined;
 
     const milestone = await prisma.milestone.update({
       where: { id },
       data: {
         ...(body.name !== undefined && { name: body.name }),
-        ...(body.plannedDate !== undefined && {
-          plannedDate: new Date(body.plannedDate),
+        ...(body.plannedStartDate !== undefined && {
+          plannedStartDate: new Date(body.plannedStartDate),
         }),
-        ...(body.actualDate !== undefined && {
-          actualDate: body.actualDate ? new Date(body.actualDate) : null,
+        ...(body.plannedEndDate !== undefined && {
+          plannedEndDate: new Date(body.plannedEndDate),
         }),
-        ...(autoActualDate && { actualDate: new Date() }),
+        ...(body.actualStartDate !== undefined && {
+          actualStartDate: body.actualStartDate ? new Date(body.actualStartDate) : null,
+        }),
+        ...(autoActualStart && { actualStartDate: new Date() }),
+        ...(body.actualEndDate !== undefined && {
+          actualEndDate: body.actualEndDate ? new Date(body.actualEndDate) : null,
+        }),
+        ...(autoActualEnd && { actualEndDate: new Date() }),
         ...(body.status !== undefined && { status: body.status }),
         ...(body.notes !== undefined && { notes: body.notes }),
         ...(body.sortOrder !== undefined && { sortOrder: body.sortOrder }),

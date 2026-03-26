@@ -88,10 +88,12 @@ model ChecklistTemplate {
 model Milestone {
   id          String    @id @default(uuid()) @db.Uuid
   projectId   String    @map("project_id") @db.Uuid
-  name        String    @db.VarChar(300)
-  plannedDate DateTime  @map("planned_date") @db.Date
-  actualDate  DateTime? @map("actual_date") @db.Date
-  status      String    @default("not_started") @db.VarChar(20)
+  name             String    @db.VarChar(300)
+  plannedStartDate DateTime  @map("planned_start_date") @db.Date
+  plannedEndDate   DateTime  @map("planned_end_date") @db.Date
+  actualStartDate  DateTime? @map("actual_start_date") @db.Date
+  actualEndDate    DateTime? @map("actual_end_date") @db.Date
+  status           String    @default("not_started") @db.VarChar(20)
   notes       String?
   sortOrder   Int       @default(0) @map("sort_order")
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()

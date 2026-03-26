@@ -39,11 +39,11 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
 
     const body = await request.json();
-    const { name, plannedDate, status, notes, sortOrder } = body;
+    const { name, plannedStartDate, plannedEndDate, status, notes, sortOrder } = body;
 
-    if (!name || !plannedDate) {
+    if (!name || !plannedStartDate || !plannedEndDate) {
       return NextResponse.json(
-        { error: "name and plannedDate are required" },
+        { error: "name, plannedStartDate, plannedEndDate are required" },
         { status: 400 }
       );
     }
@@ -52,7 +52,8 @@ export async function POST(request: NextRequest, context: RouteContext) {
       data: {
         projectId: id,
         name,
-        plannedDate: new Date(plannedDate),
+        plannedStartDate: new Date(plannedStartDate),
+        plannedEndDate: new Date(plannedEndDate),
         status: status ?? "not_started",
         notes: notes ?? null,
         sortOrder: sortOrder ?? 0,

@@ -93,8 +93,10 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const serializedMilestones = project.milestones.map((m) => ({
     id: m.id,
     name: m.name,
-    plannedDate: m.plannedDate.toISOString(),
-    actualDate: m.actualDate ? m.actualDate.toISOString() : null,
+    plannedStartDate: m.plannedStartDate.toISOString(),
+    plannedEndDate: m.plannedEndDate.toISOString(),
+    actualStartDate: m.actualStartDate ? m.actualStartDate.toISOString() : null,
+    actualEndDate: m.actualEndDate ? m.actualEndDate.toISOString() : null,
     status: m.status,
     notes: m.notes,
     sortOrder: m.sortOrder,
