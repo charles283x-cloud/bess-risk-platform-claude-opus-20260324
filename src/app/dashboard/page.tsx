@@ -17,6 +17,8 @@ export default async function DashboardPage() {
       checklistItems: {
         include: { attachments: true },
       },
+      milestones: true,
+      changeRequests: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -25,7 +27,21 @@ export default async function DashboardPage() {
   const projectsWithStatus = projects.map((project) => {
     const trafficLight = calculateTrafficLight(project);
     const stats = getProjectStats(project.checklistItems);
-    return { ...project, trafficLight, stats };
+    const milestoneCompleted = project.milestones.filter(
+      (m) => m.status === "completed"
+    ).length;
+    const milestoneTotal = project.milestones.length;
+    const pendingChanges = project.changeRequests.filter(
+      (c) => c.decisionStatus === "pending"
+    ).length;
+    return {
+      ...project,
+      trafficLight,
+      stats,
+      milestoneCompleted,
+      milestoneTotal,
+      pendingChanges,
+    };
   });
 
   // Sort by risk: red first, then yellow, then green
@@ -45,10 +61,15 @@ export default async function DashboardPage() {
   const greenCount = projectsWithStatus.filter(
     (p) => p.trafficLight === "green"
   ).length;
+  const totalPendingChanges = projectsWithStatus.reduce(
+    (sum, p) => sum + p.pendingChanges,
+    0
+  );
 
   const phaseLabels: Record<string, string> = {
     pre_signing: "签约前",
     pre_construction: "开工前",
+    in_progress: "执行中",
   };
 
   return (
@@ -57,7 +78,7 @@ export default async function DashboardPage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <div className="bg-white rounded-xl border border-gray-200 p-5">
             <p className="text-sm text-gray-500">项目总数</p>
             <p className="text-3xl font-bold text-gray-900 mt-1">
@@ -87,6 +108,21 @@ export default async function DashboardPage() {
             </div>
             <p className="text-3xl font-bold text-green-600 mt-1">
               {greenCount}
+            </p>
+          </div>
+          <div className="bg-white rounded-xl border border-orange-200 p-5">
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              <p className="text-sm text-gray-500">待决策</p>
+            </div>
+            <p className="text-3xl font-bold text-orange-600 mt-1">
+              {totalPendingChanges}
             </p>
           </div>
         </div>
@@ -164,7 +200,7 @@ export default async function DashboardPage() {
                   </span>
                 </div>
 
-                {/* Progress bar */}
+                {/* Checklist progress bar */}
                 <div className="mb-2">
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                     <span>
@@ -200,23 +236,60 @@ export default async function DashboardPage() {
                   </div>
                 </div>
 
-                {/* Overdue badge */}
-                {project.stats.overdue > 0 && (
-                  <div className="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-md">
-                    <svg
-                      className="w-3 h-3"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path
-                        fillRule="evenodd"
-                        d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                        clipRule="evenodd"
+                {/* Milestone progress for in_progress projects */}
+                {project.phase === "in_progress" && project.milestoneTotal > 0 && (
+                  <div className="mb-2">
+                    <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
+                      <span>
+                        里程碑 {project.milestoneCompleted}/{project.milestoneTotal}
+                      </span>
+                      <span>
+                        {Math.round(
+                          (project.milestoneCompleted / project.milestoneTotal) * 100
+                        )}
+                        %
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className="h-1.5 rounded-full bg-blue-500 transition-all"
+                        style={{
+                          width: `${
+                            (project.milestoneCompleted / project.milestoneTotal) * 100
+                          }%`,
+                        }}
                       />
-                    </svg>
-                    {project.stats.overdue} 项逾期
+                    </div>
                   </div>
                 )}
+
+                {/* Badges row */}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Overdue badge */}
+                  {project.stats.overdue > 0 && (
+                    <div className="inline-flex items-center gap-1 text-xs text-red-600 bg-red-50 px-2 py-1 rounded-md">
+                      <svg
+                        className="w-3 h-3"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      {project.stats.overdue} 项逾期
+                    </div>
+                  )}
+
+                  {/* Pending changes badge */}
+                  {project.pendingChanges > 0 && (
+                    <div className="inline-flex items-center gap-1 text-xs text-white bg-red-500 px-2 py-1 rounded-md">
+                      {project.pendingChanges} 项待决策
+                    </div>
+                  )}
+                </div>
               </Link>
             ))}
           </div>

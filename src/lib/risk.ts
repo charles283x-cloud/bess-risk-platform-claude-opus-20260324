@@ -5,29 +5,34 @@ interface ChecklistItemForRisk {
   deadline: Date | null;
 }
 
+interface MilestoneForRisk {
+  status: string;
+}
+
 interface ProjectForRisk {
   isHighRisk: boolean;
   checklistItems: ChecklistItemForRisk[];
+  milestones?: MilestoneForRisk[];
 }
 
 export function calculateTrafficLight(project: ProjectForRisk): TrafficLight {
   // Rule 1: Manual high-risk override
   if (project.isHighRisk) return "red";
 
-  const items = project.checklistItems;
-
-  // Rule 5: No checklist items
-  if (items.length === 0) return "yellow";
-
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
+  // Rule 2a: Any milestone delayed → RED
+  if (project.milestones?.some((m) => m.status === "delayed")) return "red";
+
+  const items = project.checklistItems;
+
+  // Rule 5: No checklist items and no milestones
+  if (items.length === 0 && (!project.milestones || project.milestones.length === 0)) return "yellow";
+
   const incompleteItems = items.filter((item) => !item.isComplete);
 
-  // Rule 4: All items complete
-  if (incompleteItems.length === 0) return "green";
-
-  // Rule 2: Any incomplete item past deadline
+  // Rule 2b: Any incomplete item past deadline
   const hasOverdue = incompleteItems.some((item) => {
     if (!item.deadline) return false;
     const deadline = new Date(item.deadline);
@@ -38,7 +43,10 @@ export function calculateTrafficLight(project: ProjectForRisk): TrafficLight {
   if (hasOverdue) return "red";
 
   // Rule 3: Incomplete items but none overdue
-  return "yellow";
+  if (incompleteItems.length > 0) return "yellow";
+
+  // Rule 4: All checklist items complete (and no delayed milestones)
+  return "green";
 }
 
 export function getProjectStats(items: ChecklistItemForRisk[]) {

@@ -9,7 +9,8 @@ echo "Database ready."
 
 # Apply migrations using raw SQL
 echo "Applying database migrations..."
-PGPASSWORD=bess_password_tokyo_2026 psql -h db -U bess -d bess_risk -f /app/prisma/migrations/20260324000000_init/migration.sql 2>/dev/null || echo "Migration already applied or tables exist."
+PGPASSWORD=bess_password_tokyo_2026 psql -h db -U bess -d bess_risk -f /app/prisma/migrations/20260324000000_init/migration.sql 2>/dev/null || echo "Migration 1 (init) already applied."
+PGPASSWORD=bess_password_tokyo_2026 psql -h db -U bess -d bess_risk -f /app/prisma/migrations/20260326000000_add_execution_phase/migration.sql 2>/dev/null || echo "Migration 2 (execution phase) already applied."
 
 # Create _prisma_migrations table if needed (so Prisma client doesn't complain)
 PGPASSWORD=bess_password_tokyo_2026 psql -h db -U bess -d bess_risk -c "

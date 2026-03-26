@@ -187,6 +187,7 @@ export default function NewProjectPage() {
               >
                 <option value="pre_signing">签约前</option>
                 <option value="pre_construction">开工前</option>
+                <option value="in_progress">执行中</option>
               </select>
             </div>
 

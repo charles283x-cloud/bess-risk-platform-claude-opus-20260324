@@ -4,7 +4,7 @@ import { calculateTrafficLight, getProjectStats } from "@/lib/risk";
 import { getSession } from "@/lib/auth";
 import Nav from "@/components/nav";
 import TrafficLight from "@/components/traffic-light";
-import ChecklistTable from "@/components/checklist-table";
+import ProjectTabs from "@/components/project-tabs";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -25,6 +25,12 @@ export default async function ProjectDetailPage({ params }: PageProps) {
         include: { attachments: true },
         orderBy: { sortOrder: "asc" },
       },
+      milestones: {
+        orderBy: { sortOrder: "asc" },
+      },
+      changeRequests: {
+        orderBy: { createdAt: "desc" },
+      },
     },
   });
 
@@ -37,6 +43,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   const phaseLabels: Record<string, string> = {
     pre_signing: "签约前",
     pre_construction: "开工前",
+    in_progress: "执行中",
   };
 
   function formatDate(date: Date | null): string {
@@ -54,6 +61,17 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     return d < today;
   });
 
+  // Milestone progress
+  const milestoneCompleted = project.milestones.filter(
+    (m) => m.status === "completed"
+  ).length;
+  const milestoneTotal = project.milestones.length;
+
+  // Pending change requests
+  const pendingChangeCount = project.changeRequests.filter(
+    (c) => c.decisionStatus === "pending"
+  ).length;
+
   // Serialize items for client component
   const serializedItems = project.checklistItems.map((item) => ({
     id: item.id,
@@ -69,6 +87,33 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       id: a.id,
       originalName: a.originalName,
     })),
+  }));
+
+  // Serialize milestones
+  const serializedMilestones = project.milestones.map((m) => ({
+    id: m.id,
+    name: m.name,
+    plannedDate: m.plannedDate.toISOString(),
+    actualDate: m.actualDate ? m.actualDate.toISOString() : null,
+    status: m.status,
+    notes: m.notes,
+    sortOrder: m.sortOrder,
+  }));
+
+  // Serialize change requests
+  const serializedChanges = project.changeRequests.map((c) => ({
+    id: c.id,
+    title: c.title,
+    description: c.description,
+    impactType: c.impactType,
+    impactDays: c.impactDays,
+    impactCost: c.impactCost ? c.impactCost.toString() : null,
+    impactDetail: c.impactDetail,
+    options: c.options as Array<{ label: string; description: string }>,
+    decisionStatus: c.decisionStatus,
+    decisionDate: c.decisionDate ? c.decisionDate.toISOString() : null,
+    decisionNotes: c.decisionNotes,
+    createdAt: c.createdAt.toISOString(),
   }));
 
   return (
@@ -181,6 +226,42 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             </div>
           </div>
 
+          {/* Milestone progress for in_progress projects */}
+          {project.phase === "in_progress" && milestoneTotal > 0 && (
+            <div className="mt-3">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-gray-500">
+                  里程碑进度: {milestoneCompleted} / {milestoneTotal} 已完成
+                </span>
+                <span className="text-gray-700 font-medium">
+                  {Math.round((milestoneCompleted / milestoneTotal) * 100)}%
+                </span>
+              </div>
+              <div className="w-full bg-gray-100 rounded-full h-2">
+                <div
+                  className="h-2 rounded-full bg-blue-500 transition-all"
+                  style={{
+                    width: `${(milestoneCompleted / milestoneTotal) * 100}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Pending changes badge */}
+          {pendingChangeCount > 0 && (
+            <div className="mt-3 inline-flex items-center gap-1 text-xs text-yellow-700 bg-yellow-50 border border-yellow-200 px-2.5 py-1 rounded-md">
+              <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                <path
+                  fillRule="evenodd"
+                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              {pendingChangeCount} 项待决策变更
+            </div>
+          )}
+
           {/* Notes */}
           {project.notes && (
             <div className="mt-5 pt-5 border-t border-gray-100">
@@ -192,16 +273,16 @@ export default async function ProjectDetailPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* Checklist Section */}
+        {/* Tabbed Content Section */}
         <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">检查清单</h2>
-          </div>
-
-          <ChecklistTable
-            items={serializedItems}
+          <ProjectTabs
+            checklistItems={serializedItems}
+            milestones={serializedMilestones}
+            changeRequests={serializedChanges}
             projectId={project.id}
             isAdmin={isAdmin}
+            projectPhase={project.phase}
+            pendingChangeCount={pendingChangeCount}
           />
         </div>
 
