@@ -6,6 +6,7 @@ import ChecklistTable from "@/components/checklist-table";
 import MilestoneTable from "@/components/milestone-table";
 import ChangeRequestTable from "@/components/change-request-table";
 import PaymentTable from "@/components/payment-table";
+import ContractTable from "@/components/contract-table";
 
 interface ProjectTabsProps {
   checklistItems: Array<{
@@ -57,6 +58,13 @@ interface ProjectTabsProps {
     notes: string | null;
     sortOrder: number;
   }>;
+  contracts: Array<{
+    id: string;
+    name: string;
+    originalName: string;
+    sizeBytes: number;
+    uploadedAt: string;
+  }>;
   projectId: string;
   isAdmin: boolean;
   projectPhase: string;
@@ -68,6 +76,7 @@ const tabs = [
   { key: "milestones", label: "里程碑" },
   { key: "changes", label: "变更决策" },
   { key: "payments", label: "资金收付" },
+  { key: "contracts", label: "合同文件" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
@@ -77,6 +86,7 @@ export default function ProjectTabs({
   milestones,
   changeRequests,
   payments,
+  contracts,
   projectId,
   isAdmin,
   projectPhase,
@@ -170,6 +180,13 @@ export default function ProjectTabs({
       {activeTab === "payments" && (
         <PaymentTable
           payments={payments}
+          projectId={projectId}
+          isAdmin={isAdmin}
+        />
+      )}
+      {activeTab === "contracts" && (
+        <ContractTable
+          contracts={contracts}
           projectId={projectId}
           isAdmin={isAdmin}
         />

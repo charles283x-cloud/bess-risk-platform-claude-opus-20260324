@@ -35,6 +35,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       payments: {
         orderBy: [{ plannedDate: "asc" }, { sortOrder: "asc" }],
       },
+      contracts: {
+        orderBy: { uploadedAt: "desc" },
+      },
     },
   });
 
@@ -134,6 +137,15 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     actualDate: p.actualDate ? p.actualDate.toISOString() : null,
     notes: p.notes,
     sortOrder: p.sortOrder,
+  }));
+
+  // Serialize contracts
+  const serializedContracts = project.contracts.map((c) => ({
+    id: c.id,
+    name: c.name,
+    originalName: c.originalName,
+    sizeBytes: c.sizeBytes,
+    uploadedAt: c.uploadedAt.toISOString(),
   }));
 
   return (
@@ -321,6 +333,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             milestones={serializedMilestones}
             changeRequests={serializedChanges}
             payments={serializedPayments}
+            contracts={serializedContracts}
             projectId={project.id}
             isAdmin={isAdmin}
             projectPhase={project.phase}
