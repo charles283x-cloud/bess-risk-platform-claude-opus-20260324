@@ -32,6 +32,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       changeRequests: {
         orderBy: { createdAt: "desc" },
       },
+      payments: {
+        orderBy: [{ plannedDate: "asc" }, { sortOrder: "asc" }],
+      },
     },
   });
 
@@ -117,6 +120,20 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     decisionDate: c.decisionDate ? c.decisionDate.toISOString() : null,
     decisionNotes: c.decisionNotes,
     createdAt: c.createdAt.toISOString(),
+  }));
+
+  // Serialize payments
+  const serializedPayments = project.payments.map((p) => ({
+    id: p.id,
+    type: p.type,
+    category: p.category,
+    description: p.description,
+    plannedAmount: p.plannedAmount.toString(),
+    plannedDate: p.plannedDate.toISOString(),
+    actualAmount: p.actualAmount ? p.actualAmount.toString() : null,
+    actualDate: p.actualDate ? p.actualDate.toISOString() : null,
+    notes: p.notes,
+    sortOrder: p.sortOrder,
   }));
 
   return (
@@ -303,6 +320,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             checklistItems={serializedItems}
             milestones={serializedMilestones}
             changeRequests={serializedChanges}
+            payments={serializedPayments}
             projectId={project.id}
             isAdmin={isAdmin}
             projectPhase={project.phase}

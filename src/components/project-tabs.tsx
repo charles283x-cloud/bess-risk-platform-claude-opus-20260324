@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import ChecklistTable from "@/components/checklist-table";
 import MilestoneTable from "@/components/milestone-table";
 import ChangeRequestTable from "@/components/change-request-table";
+import PaymentTable from "@/components/payment-table";
 
 interface ProjectTabsProps {
   checklistItems: Array<{
@@ -44,6 +45,18 @@ interface ProjectTabsProps {
     decisionNotes: string | null;
     createdAt: string;
   }>;
+  payments: Array<{
+    id: string;
+    type: string;
+    category: string;
+    description: string;
+    plannedAmount: string;
+    plannedDate: string;
+    actualAmount: string | null;
+    actualDate: string | null;
+    notes: string | null;
+    sortOrder: number;
+  }>;
   projectId: string;
   isAdmin: boolean;
   projectPhase: string;
@@ -54,6 +67,7 @@ const tabs = [
   { key: "checklist", label: "检查清单" },
   { key: "milestones", label: "里程碑" },
   { key: "changes", label: "变更决策" },
+  { key: "payments", label: "资金收付" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
@@ -62,6 +76,7 @@ export default function ProjectTabs({
   checklistItems,
   milestones,
   changeRequests,
+  payments,
   projectId,
   isAdmin,
   projectPhase,
@@ -148,6 +163,13 @@ export default function ProjectTabs({
       {activeTab === "changes" && (
         <ChangeRequestTable
           changes={changeRequests}
+          projectId={projectId}
+          isAdmin={isAdmin}
+        />
+      )}
+      {activeTab === "payments" && (
+        <PaymentTable
+          payments={payments}
           projectId={projectId}
           isAdmin={isAdmin}
         />
