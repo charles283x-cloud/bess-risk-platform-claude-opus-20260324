@@ -72,10 +72,10 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Copy matching ChecklistTemplate records into ChecklistItem records
+    // Copy ALL ChecklistTemplate records into ChecklistItem records
+    // Every project needs both pre_signing and pre_construction checks
     const templates = await prisma.checklistTemplate.findMany({
-      where: { phase },
-      orderBy: { sortOrder: "asc" },
+      orderBy: [{ phase: "asc" }, { sortOrder: "asc" }],
     });
 
     if (templates.length > 0) {

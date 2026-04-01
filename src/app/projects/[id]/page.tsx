@@ -5,6 +5,7 @@ import { getSession } from "@/lib/auth";
 import Nav from "@/components/nav";
 import TrafficLight from "@/components/traffic-light";
 import ProjectTabs from "@/components/project-tabs";
+import ProjectActions from "@/components/project-actions";
 import Link from "next/link";
 
 export const dynamic = "force-dynamic";
@@ -155,6 +156,27 @@ export default async function ProjectDetailPage({ params }: PageProps) {
                 >
                   导出报告
                 </Link>
+                <ProjectActions
+                  project={{
+                    id: project.id,
+                    name: project.name,
+                    location: project.location,
+                    capacityMw: project.capacityMw?.toString() || null,
+                    capacityMwh: project.capacityMwh?.toString() || null,
+                    phase: project.phase,
+                    targetSigningDate: project.targetSigningDate
+                      ? project.targetSigningDate.toISOString().split("T")[0]
+                      : null,
+                    targetStartDate: project.targetStartDate
+                      ? project.targetStartDate.toISOString().split("T")[0]
+                      : null,
+                    targetEndDate: project.targetEndDate
+                      ? project.targetEndDate.toISOString().split("T")[0]
+                      : null,
+                    notes: project.notes,
+                    isHighRisk: project.isHighRisk,
+                  }}
+                />
               </div>
             )}
           </div>
