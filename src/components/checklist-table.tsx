@@ -28,23 +28,33 @@ interface ChecklistTableProps {
 }
 
 const categoryLabels: Record<string, string> = {
+  permits: "许可/手续",
+  land: "土地",
+  environment: "环保/消防",
+  grid: "电网/并网",
+  residents: "地方/居民",
+  other: "其他",
   legal: "法务",
   financial: "财务",
   technical: "技术",
   environmental: "环保",
   regulatory: "审批",
   commercial: "商务",
-  other: "其他",
 };
 
 const categoryColors: Record<string, string> = {
+  permits: "bg-purple-100 text-purple-700",
+  land: "bg-amber-100 text-amber-700",
+  environment: "bg-green-100 text-green-700",
+  grid: "bg-blue-100 text-blue-700",
+  residents: "bg-orange-100 text-orange-700",
+  other: "bg-gray-100 text-gray-700",
   legal: "bg-purple-100 text-purple-700",
   financial: "bg-blue-100 text-blue-700",
   technical: "bg-teal-100 text-teal-700",
   environmental: "bg-green-100 text-green-700",
   regulatory: "bg-orange-100 text-orange-700",
   commercial: "bg-pink-100 text-pink-700",
-  other: "bg-gray-100 text-gray-700",
 };
 
 export default function ChecklistTable({

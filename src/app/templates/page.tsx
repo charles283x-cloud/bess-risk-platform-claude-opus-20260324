@@ -5,11 +5,11 @@ import Nav from "@/components/nav";
 export const dynamic = "force-dynamic";
 
 const categoryLabels: Record<string, string> = {
+  permits: "许可/手续",
   land: "土地",
-  grid: "并网",
-  residents: "居民",
-  environment: "环境",
-  permits: "许可",
+  environment: "环保/消防",
+  grid: "电网/并网",
+  residents: "地方/居民",
   other: "其他",
 };
 
