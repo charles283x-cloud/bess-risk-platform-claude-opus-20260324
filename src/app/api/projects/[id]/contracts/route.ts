@@ -31,6 +31,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
     const name = formData.get("name") as string | null;
+    const category = (formData.get("category") as string) || "incoming";
 
     if (!file) {
       return NextResponse.json({ error: "未选择文件" }, { status: 400 });
@@ -51,6 +52,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const contract = await prisma.contract.create({
       data: {
         projectId: id,
+        category,
         name: name || file.name.replace(/\.pdf$/i, ""),
         originalName: file.name,
         storedName,

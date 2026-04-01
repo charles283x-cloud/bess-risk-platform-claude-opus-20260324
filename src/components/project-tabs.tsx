@@ -60,6 +60,7 @@ interface ProjectTabsProps {
   }>;
   contracts: Array<{
     id: string;
+    category: string;
     name: string;
     originalName: string;
     sizeBytes: number;
@@ -76,7 +77,7 @@ const tabs = [
   { key: "milestones", label: "里程碑" },
   { key: "changes", label: "变更决策" },
   { key: "payments", label: "资金收付" },
-  { key: "contracts", label: "合同文件" },
+  { key: "contracts", label: "项目合同" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];

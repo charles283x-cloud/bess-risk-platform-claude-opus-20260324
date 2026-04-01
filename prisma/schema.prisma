@@ -153,6 +153,7 @@ model PaymentRecord {
 model Contract {
   id           String   @id @default(uuid()) @db.Uuid
   projectId    String   @map("project_id") @db.Uuid
+  category     String   @default("incoming") @db.VarChar(20) // incoming | subcontract
   name         String   @db.VarChar(300)
   originalName String   @map("original_name") @db.VarChar(500)
   storedName   String   @map("stored_name") @db.VarChar(500)

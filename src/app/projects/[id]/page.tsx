@@ -142,6 +142,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
   // Serialize contracts
   const serializedContracts = project.contracts.map((c) => ({
     id: c.id,
+    category: c.category,
     name: c.name,
     originalName: c.originalName,
     sizeBytes: c.sizeBytes,
