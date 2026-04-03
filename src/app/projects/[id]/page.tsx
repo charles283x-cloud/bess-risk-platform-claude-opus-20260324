@@ -41,6 +41,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       documents: {
         orderBy: [{ category: "asc" }, { uploadedAt: "desc" }],
       },
+      photos: {
+        orderBy: { uploadedAt: "desc" },
+      },
     },
   });
 
@@ -150,6 +153,16 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     originalName: c.originalName,
     sizeBytes: c.sizeBytes,
     uploadedAt: c.uploadedAt.toISOString(),
+  }));
+
+  // Serialize photos
+  const serializedPhotos = project.photos.map((p) => ({
+    id: p.id,
+    description: p.description,
+    originalName: p.originalName,
+    sizeBytes: p.sizeBytes,
+    takenAt: p.takenAt ? p.takenAt.toISOString() : null,
+    uploadedAt: p.uploadedAt.toISOString(),
   }));
 
   // Serialize documents
@@ -349,6 +362,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             payments={serializedPayments}
             contracts={serializedContracts}
             documents={serializedDocuments}
+            photos={serializedPhotos}
             projectId={project.id}
             isAdmin={isAdmin}
             projectPhase={project.phase}

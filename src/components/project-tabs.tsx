@@ -8,6 +8,7 @@ import ChangeRequestTable from "@/components/change-request-table";
 import PaymentTable from "@/components/payment-table";
 import ContractTable from "@/components/contract-table";
 import DocumentTable from "@/components/document-table";
+import PhotoGallery from "@/components/photo-gallery";
 
 interface ProjectTabsProps {
   checklistItems: Array<{
@@ -75,6 +76,14 @@ interface ProjectTabsProps {
     sizeBytes: number;
     uploadedAt: string;
   }>;
+  photos: Array<{
+    id: string;
+    description: string | null;
+    originalName: string;
+    sizeBytes: number;
+    takenAt: string | null;
+    uploadedAt: string;
+  }>;
   projectId: string;
   isAdmin: boolean;
   projectPhase: string;
@@ -88,6 +97,7 @@ const tabs = [
   { key: "payments", label: "资金收付" },
   { key: "contracts", label: "项目合同" },
   { key: "documents", label: "管理文件" },
+  { key: "photos", label: "现场照片" },
 ] as const;
 
 type TabKey = (typeof tabs)[number]["key"];
@@ -99,6 +109,7 @@ export default function ProjectTabs({
   payments,
   contracts,
   documents,
+  photos,
   projectId,
   isAdmin,
   projectPhase,
@@ -206,6 +217,13 @@ export default function ProjectTabs({
       {activeTab === "documents" && (
         <DocumentTable
           documents={documents}
+          projectId={projectId}
+          isAdmin={isAdmin}
+        />
+      )}
+      {activeTab === "photos" && (
+        <PhotoGallery
+          photos={photos}
           projectId={projectId}
           isAdmin={isAdmin}
         />
