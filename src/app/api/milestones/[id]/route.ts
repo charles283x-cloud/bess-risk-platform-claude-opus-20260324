@@ -21,11 +21,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       where: { id },
       data: {
         ...(body.name !== undefined && { name: body.name }),
+        ...(body.description !== undefined && { description: body.description || null }),
         ...(body.plannedStartDate !== undefined && {
-          plannedStartDate: new Date(body.plannedStartDate),
+          plannedStartDate: body.plannedStartDate ? new Date(body.plannedStartDate) : null,
         }),
         ...(body.plannedEndDate !== undefined && {
-          plannedEndDate: new Date(body.plannedEndDate),
+          plannedEndDate: body.plannedEndDate ? new Date(body.plannedEndDate) : null,
         }),
         ...(body.actualStartDate !== undefined && {
           actualStartDate: body.actualStartDate ? new Date(body.actualStartDate) : null,

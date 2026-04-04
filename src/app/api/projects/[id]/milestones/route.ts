@@ -9,11 +9,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
     await requireAuth();
     const { id } = await context.params;
 
-    const project = await prisma.project.findUnique({ where: { id } });
-    if (!project) {
-      return NextResponse.json({ error: "Project not found" }, { status: 404 });
-    }
-
     const milestones = await prisma.milestone.findMany({
       where: { projectId: id },
       orderBy: { sortOrder: "asc" },
@@ -23,7 +18,6 @@ export async function GET(request: NextRequest, context: RouteContext) {
   } catch (error) {
     const message = error instanceof Error ? error.message : "Internal server error";
     if (message === "Unauthorized") return NextResponse.json({ error: message }, { status: 401 });
-    if (message === "Forbidden") return NextResponse.json({ error: message }, { status: 403 });
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
@@ -32,28 +26,21 @@ export async function POST(request: NextRequest, context: RouteContext) {
   try {
     await requireAdmin();
     const { id } = await context.params;
-
-    const project = await prisma.project.findUnique({ where: { id } });
-    if (!project) {
-      return NextResponse.json({ error: "Project not found" }, { status: 404 });
-    }
-
     const body = await request.json();
-    const { name, plannedStartDate, plannedEndDate, status, notes, sortOrder } = body;
+    const { name, description, isHardGate, plannedStartDate, plannedEndDate, status, notes, sortOrder } = body;
 
-    if (!name || !plannedStartDate || !plannedEndDate) {
-      return NextResponse.json(
-        { error: "name, plannedStartDate, plannedEndDate are required" },
-        { status: 400 }
-      );
+    if (!name) {
+      return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
 
     const milestone = await prisma.milestone.create({
       data: {
         projectId: id,
         name,
-        plannedStartDate: new Date(plannedStartDate),
-        plannedEndDate: new Date(plannedEndDate),
+        description: description ?? null,
+        isHardGate: isHardGate ?? false,
+        plannedStartDate: plannedStartDate ? new Date(plannedStartDate) : null,
+        plannedEndDate: plannedEndDate ? new Date(plannedEndDate) : null,
         status: status ?? "not_started",
         notes: notes ?? null,
         sortOrder: sortOrder ?? 0,

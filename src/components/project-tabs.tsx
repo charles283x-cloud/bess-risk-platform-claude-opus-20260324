@@ -26,8 +26,10 @@ interface ProjectTabsProps {
   milestones: Array<{
     id: string;
     name: string;
-    plannedStartDate: string;
-    plannedEndDate: string;
+    description: string | null;
+    isHardGate: boolean;
+    plannedStartDate: string | null;
+    plannedEndDate: string | null;
     actualStartDate: string | null;
     actualEndDate: string | null;
     status: string;
