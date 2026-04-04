@@ -54,7 +54,6 @@ export default function MilestoneTable({
   isAdmin,
 }: MilestoneTableProps) {
   const [milestones, setMilestones] = useState<MilestoneItem[]>(initialMilestones);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({
     plannedStartDate: "",
@@ -240,7 +239,6 @@ export default function MilestoneTable({
           {milestones.map((m) => {
             const variance = calcVariance(m.plannedEndDate, m.actualEndDate);
             const isEditing = editingId === m.id;
-            const isExpanded = expandedId === m.id;
 
             return (
               <div key={m.id} className={`bg-white border rounded-lg overflow-hidden transition ${
@@ -273,6 +271,11 @@ export default function MilestoneTable({
                       )}
                     </div>
 
+                    {/* Description as note below name */}
+                    {m.description && (
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">{m.description}</p>
+                    )}
+
                     {/* Dates row */}
                     <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5 text-xs text-gray-500">
                       <span>计划: {formatDate(m.plannedStartDate)} ~ {formatDate(m.plannedEndDate)}</span>
@@ -286,13 +289,6 @@ export default function MilestoneTable({
 
                   {/* Actions */}
                   <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      onClick={() => setExpandedId(isExpanded ? null : m.id)}
-                      className="text-xs text-gray-400 hover:text-gray-600 cursor-pointer px-1.5 py-1"
-                      title="完成口径"
-                    >
-                      {isExpanded ? "收起" : "详情"}
-                    </button>
                     {isAdmin && (
                       <>
                         <button onClick={() => startEdit(m)} className="text-xs text-blue-600 hover:text-blue-800 cursor-pointer px-1.5 py-1">编辑</button>
@@ -301,15 +297,6 @@ export default function MilestoneTable({
                     )}
                   </div>
                 </div>
-
-                {/* Expanded description */}
-                {isExpanded && m.description && (
-                  <div className="px-3 pb-3 pt-0 ml-6">
-                    <div className="bg-gray-50 rounded-lg p-3 text-xs text-gray-600 leading-relaxed">
-                      <span className="font-medium text-gray-700">完成口径: </span>{m.description}
-                    </div>
-                  </div>
-                )}
 
                 {/* Edit form */}
                 {isEditing && (
