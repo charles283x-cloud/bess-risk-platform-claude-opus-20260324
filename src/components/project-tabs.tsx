@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ProjectOverview from "@/components/project-overview";
 import ChecklistTable from "@/components/checklist-table";
 import MilestoneTable from "@/components/milestone-table";
 import ChangeRequestTable from "@/components/change-request-table";
@@ -90,9 +91,23 @@ interface ProjectTabsProps {
   isAdmin: boolean;
   projectPhase: string;
   pendingChangeCount: number;
+  projectInfo: {
+    name: string;
+    location: string;
+    capacityMw: string | null;
+    capacityMwh: string | null;
+    phase: string;
+    targetSigningDate: string | null;
+    targetStartDate: string | null;
+    targetEndDate: string | null;
+    notes: string | null;
+    isHighRisk: boolean;
+  };
+  trafficLight: "green" | "yellow" | "red";
 }
 
 const tabs = [
+  { key: "overview", label: "项目概述" },
   { key: "checklist", label: "检查清单" },
   { key: "milestones", label: "里程碑" },
   { key: "changes", label: "变更决策" },
@@ -116,8 +131,10 @@ export default function ProjectTabs({
   isAdmin,
   projectPhase,
   pendingChangeCount,
+  projectInfo,
+  trafficLight,
 }: ProjectTabsProps) {
-  const [activeTab, setActiveTab] = useState<TabKey>("checklist");
+  const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [phaseUpdating, setPhaseUpdating] = useState(false);
   const router = useRouter();
 
@@ -181,6 +198,43 @@ export default function ProjectTabs({
       </div>
 
       {/* Tab content */}
+      {activeTab === "overview" && (
+        <ProjectOverview
+          project={projectInfo}
+          trafficLight={trafficLight}
+          checklistStats={{
+            total: checklistItems.length,
+            completed: checklistItems.filter((i) => i.isComplete).length,
+            overdue: checklistItems.filter((i) => {
+              if (i.isComplete || !i.deadline) return false;
+              return new Date(i.deadline) < new Date();
+            }).length,
+            incomplete: checklistItems.filter((i) => !i.isComplete).length,
+          }}
+          milestoneStats={{
+            total: milestones.length,
+            completed: milestones.filter((m) => m.status === "completed").length,
+            inProgress: milestones.filter((m) => m.status === "in_progress").length,
+            delayed: milestones.filter((m) => m.status === "delayed").length,
+            notStarted: milestones.filter((m) => m.status === "not_started").length,
+          }}
+          changeStats={{
+            total: changeRequests.length,
+            pending: changeRequests.filter((c) => c.decisionStatus === "pending").length,
+            approved: changeRequests.filter((c) => c.decisionStatus === "approved").length,
+            rejected: changeRequests.filter((c) => c.decisionStatus === "rejected").length,
+          }}
+          overdueItems={checklistItems
+            .filter((i) => !i.isComplete && i.deadline && new Date(i.deadline) < new Date())
+            .map((i) => ({ name: i.name, category: i.category, deadline: i.deadline! }))}
+          delayedMilestones={milestones
+            .filter((m) => m.status === "delayed")
+            .map((m) => ({ name: m.name, plannedEndDate: m.plannedEndDate, actualEndDate: m.actualEndDate }))}
+          pendingChanges={changeRequests
+            .filter((c) => c.decisionStatus === "pending")
+            .map((c) => ({ title: c.title, impactType: c.impactType, createdAt: c.createdAt }))}
+        />
+      )}
       {activeTab === "checklist" && (
         <ChecklistTable
           items={checklistItems}

@@ -369,6 +369,19 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             isAdmin={isAdmin}
             projectPhase={project.phase}
             pendingChangeCount={pendingChangeCount}
+            projectInfo={{
+              name: project.name,
+              location: project.location,
+              capacityMw: project.capacityMw?.toString() || null,
+              capacityMwh: project.capacityMwh?.toString() || null,
+              phase: project.phase,
+              targetSigningDate: project.targetSigningDate ? project.targetSigningDate.toISOString() : null,
+              targetStartDate: project.targetStartDate ? project.targetStartDate.toISOString() : null,
+              targetEndDate: project.targetEndDate ? project.targetEndDate.toISOString() : null,
+              notes: project.notes,
+              isHighRisk: project.isHighRisk,
+            }}
+            trafficLight={trafficLight}
           />
         </div>
 
