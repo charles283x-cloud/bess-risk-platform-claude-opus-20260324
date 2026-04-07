@@ -87,23 +87,17 @@ interface ProjectTabsProps {
     takenAt: string | null;
     uploadedAt: string;
   }>;
+  reports: Array<{
+    id: string;
+    title: string;
+    content: string;
+    reportDate: string;
+    createdAt: string;
+  }>;
   projectId: string;
   isAdmin: boolean;
   projectPhase: string;
   pendingChangeCount: number;
-  projectInfo: {
-    name: string;
-    location: string;
-    capacityMw: string | null;
-    capacityMwh: string | null;
-    phase: string;
-    targetSigningDate: string | null;
-    targetStartDate: string | null;
-    targetEndDate: string | null;
-    notes: string | null;
-    isHighRisk: boolean;
-  };
-  trafficLight: "green" | "yellow" | "red";
 }
 
 const tabs = [
@@ -127,12 +121,11 @@ export default function ProjectTabs({
   contracts,
   documents,
   photos,
+  reports,
   projectId,
   isAdmin,
   projectPhase,
   pendingChangeCount,
-  projectInfo,
-  trafficLight,
 }: ProjectTabsProps) {
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [phaseUpdating, setPhaseUpdating] = useState(false);
@@ -200,39 +193,9 @@ export default function ProjectTabs({
       {/* Tab content */}
       {activeTab === "overview" && (
         <ProjectOverview
-          project={projectInfo}
-          trafficLight={trafficLight}
-          checklistStats={{
-            total: checklistItems.length,
-            completed: checklistItems.filter((i) => i.isComplete).length,
-            overdue: checklistItems.filter((i) => {
-              if (i.isComplete || !i.deadline) return false;
-              return new Date(i.deadline) < new Date();
-            }).length,
-            incomplete: checklistItems.filter((i) => !i.isComplete).length,
-          }}
-          milestoneStats={{
-            total: milestones.length,
-            completed: milestones.filter((m) => m.status === "completed").length,
-            inProgress: milestones.filter((m) => m.status === "in_progress").length,
-            delayed: milestones.filter((m) => m.status === "delayed").length,
-            notStarted: milestones.filter((m) => m.status === "not_started").length,
-          }}
-          changeStats={{
-            total: changeRequests.length,
-            pending: changeRequests.filter((c) => c.decisionStatus === "pending").length,
-            approved: changeRequests.filter((c) => c.decisionStatus === "approved").length,
-            rejected: changeRequests.filter((c) => c.decisionStatus === "rejected").length,
-          }}
-          overdueItems={checklistItems
-            .filter((i) => !i.isComplete && i.deadline && new Date(i.deadline) < new Date())
-            .map((i) => ({ name: i.name, category: i.category, deadline: i.deadline! }))}
-          delayedMilestones={milestones
-            .filter((m) => m.status === "delayed")
-            .map((m) => ({ name: m.name, plannedEndDate: m.plannedEndDate, actualEndDate: m.actualEndDate }))}
-          pendingChanges={changeRequests
-            .filter((c) => c.decisionStatus === "pending")
-            .map((c) => ({ title: c.title, impactType: c.impactType, createdAt: c.createdAt }))}
+          reports={reports}
+          projectId={projectId}
+          isAdmin={isAdmin}
         />
       )}
       {activeTab === "checklist" && (

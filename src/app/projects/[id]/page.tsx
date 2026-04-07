@@ -44,6 +44,9 @@ export default async function ProjectDetailPage({ params }: PageProps) {
       photos: {
         orderBy: { uploadedAt: "desc" },
       },
+      weeklyReports: {
+        orderBy: { reportDate: "desc" },
+      },
     },
   });
 
@@ -175,6 +178,15 @@ export default async function ProjectDetailPage({ params }: PageProps) {
     originalName: d.originalName,
     sizeBytes: d.sizeBytes,
     uploadedAt: d.uploadedAt.toISOString(),
+  }));
+
+  // Serialize weekly reports
+  const serializedReports = project.weeklyReports.map((r) => ({
+    id: r.id,
+    title: r.title,
+    content: r.content,
+    reportDate: r.reportDate.toISOString(),
+    createdAt: r.createdAt.toISOString(),
   }));
 
   return (
@@ -365,23 +377,11 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             contracts={serializedContracts}
             documents={serializedDocuments}
             photos={serializedPhotos}
+            reports={serializedReports}
             projectId={project.id}
             isAdmin={isAdmin}
             projectPhase={project.phase}
             pendingChangeCount={pendingChangeCount}
-            projectInfo={{
-              name: project.name,
-              location: project.location,
-              capacityMw: project.capacityMw?.toString() || null,
-              capacityMwh: project.capacityMwh?.toString() || null,
-              phase: project.phase,
-              targetSigningDate: project.targetSigningDate ? project.targetSigningDate.toISOString() : null,
-              targetStartDate: project.targetStartDate ? project.targetStartDate.toISOString() : null,
-              targetEndDate: project.targetEndDate ? project.targetEndDate.toISOString() : null,
-              notes: project.notes,
-              isHighRisk: project.isHighRisk,
-            }}
-            trafficLight={trafficLight}
           />
         </div>
 

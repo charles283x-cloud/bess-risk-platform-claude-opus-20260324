@@ -77,6 +77,17 @@ ALTER TABLE milestones ALTER COLUMN planned_end_date DROP NOT NULL;
 ALTER TABLE milestones ALTER COLUMN updated_at SET DEFAULT now();
 ALTER TABLE milestones ADD COLUMN IF NOT EXISTS description TEXT;
 ALTER TABLE milestones ADD COLUMN IF NOT EXISTS is_hard_gate BOOLEAN DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS weekly_reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  title VARCHAR(300) NOT NULL,
+  content TEXT NOT NULL,
+  report_date DATE NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_weekly_reports_project_id ON weekly_reports(project_id);
 EOSQL
 
 # Create _prisma_migrations table if needed (so Prisma client doesn't complain)
