@@ -12,6 +12,8 @@
     "db:push": "npx prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
     "db:studio": "npx prisma studio",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "postinstall": "prisma generate"
   },
   "keywords": [],
@@ -21,6 +23,7 @@
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "@tailwindcss/postcss": "^4.2.2",
+    "@tailwindcss/typography": "^0.5.19",
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "bcryptjs": "^3.0.3",
@@ -31,11 +34,16 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
+    "remark-breaks": "^4.0.0",
     "remark-gfm": "^4.0.1",
     "tailwindcss": "^4.2.2",
     "typescript": "^6.0.2"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6"
+    "@types/bcryptjs": "^2.4.6",
+    "@vitest/coverage-v8": "^4.1.4",
+    "@vitest/ui": "^4.1.4",
+    "happy-dom": "^20.8.9",
+    "vitest": "^4.1.4"
   }
 }

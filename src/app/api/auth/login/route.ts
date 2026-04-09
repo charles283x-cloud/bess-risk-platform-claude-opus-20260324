@@ -22,12 +22,18 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await getSession();
+    session.userId = user.id;
     session.username = user.username;
+    session.displayName = user.displayName;
     session.role = user.role;
     session.isLoggedIn = true;
     await session.save();
 
-    return NextResponse.json({ username: user.username, role: user.role });
+    return NextResponse.json({
+      username: user.username,
+      displayName: user.displayName,
+      role: user.role,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },

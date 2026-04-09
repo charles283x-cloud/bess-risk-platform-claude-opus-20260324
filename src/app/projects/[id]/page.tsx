@@ -377,6 +377,7 @@ export default async function ProjectDetailPage({ params }: PageProps) {
             contracts={serializedContracts}
             documents={serializedDocuments}
             photos={serializedPhotos}
+            summary={project.summary || null}
             reports={serializedReports}
             projectId={project.id}
             isAdmin={isAdmin}

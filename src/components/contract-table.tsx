@@ -20,11 +20,13 @@ interface ContractTableProps {
 const categoryLabels: Record<string, string> = {
   incoming: "进项合同",
   subcontract: "分包合同",
+  other: "其他合同",
 };
 
 const categoryColors: Record<string, string> = {
   incoming: "bg-blue-100 text-blue-700",
   subcontract: "bg-orange-100 text-orange-700",
+  other: "bg-gray-100 text-gray-700",
 };
 
 function formatSize(bytes: number): string {
@@ -120,6 +122,7 @@ export default function ContractTable({
 
   const incomingContracts = contracts.filter((c) => c.category === "incoming");
   const subContracts = contracts.filter((c) => c.category === "subcontract");
+  const otherContracts = contracts.filter((c) => c.category === "other");
 
   function renderContractList(list: ContractItem[]) {
     if (list.length === 0) {
@@ -215,6 +218,7 @@ export default function ContractTable({
               >
                 <option value="incoming">进项合同</option>
                 <option value="subcontract">分包合同</option>
+                <option value="other">其他合同</option>
               </select>
             </div>
             <div>
@@ -294,6 +298,17 @@ export default function ContractTable({
               <span className="text-gray-400 font-normal">({subContracts.length} 份)</span>
             </h3>
             {renderContractList(subContracts)}
+          </div>
+
+          {/* 其他合同 */}
+          <div>
+            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2">
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${categoryColors.other}`}>
+                {categoryLabels.other}
+              </span>
+              <span className="text-gray-400 font-normal">({otherContracts.length} 份)</span>
+            </h3>
+            {renderContractList(otherContracts)}
           </div>
         </div>
       )}

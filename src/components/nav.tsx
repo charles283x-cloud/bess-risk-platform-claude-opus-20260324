@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 
 interface UserInfo {
   username: string;
+  displayName?: string;
   role: "admin" | "viewer";
 }
 
@@ -15,11 +16,47 @@ const navLinks = [
   { href: "/templates", label: "模板管理" },
 ];
 
+const adminLinks = [
+  { href: "/users", label: "用户管理" },
+];
+
 export default function Nav() {
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<UserInfo | null>(null);
+  const [showPwdModal, setShowPwdModal] = useState(false);
+  const [oldPwd, setOldPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [pwdError, setPwdError] = useState("");
+  const [pwdSaving, setPwdSaving] = useState(false);
+
+  async function handleChangePassword() {
+    setPwdError("");
+    if (newPwd.length < 6) {
+      setPwdError("新密码至少 6 位");
+      return;
+    }
+    setPwdSaving(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ oldPassword: oldPwd, newPassword: newPwd }),
+      });
+      if (res.ok) {
+        alert("密码修改成功");
+        setShowPwdModal(false);
+        setOldPwd("");
+        setNewPwd("");
+      } else {
+        const data = await res.json();
+        setPwdError(data.error || "修改失败");
+      }
+    } catch {
+      setPwdError("网络错误");
+    } finally { setPwdSaving(false); }
+  }
 
   useEffect(() => {
     fetch("/api/auth/me")
@@ -72,18 +109,37 @@ export default function Nav() {
                 {link.label}
               </Link>
             ))}
+            {user?.role === "admin" && adminLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
+                  isActive(link.href)
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
           {/* Desktop user info */}
           <div className="hidden md:flex items-center gap-3">
             {user && (
               <span className="text-sm text-gray-500">
-                {user.username}
+                {user.displayName || user.username}
                 <span className="ml-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
                   {user.role === "admin" ? "管理员" : "只读"}
                 </span>
               </span>
             )}
+            <button
+              onClick={() => { setShowPwdModal(true); setPwdError(""); }}
+              className="text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
+            >
+              修改密码
+            </button>
             <button
               onClick={handleLogout}
               className="text-sm text-gray-500 hover:text-gray-700 transition cursor-pointer"
@@ -142,22 +198,97 @@ export default function Nav() {
                 {link.label}
               </Link>
             ))}
+            {user?.role === "admin" && adminLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                onClick={() => setMobileOpen(false)}
+                className={`block px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive(link.href)
+                    ? "bg-blue-50 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
-          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between">
+          <div className="border-t border-gray-100 px-4 py-3 flex items-center justify-between flex-wrap gap-2">
             {user && (
               <span className="text-sm text-gray-500">
-                {user.username}
+                {user.displayName || user.username}
                 <span className="ml-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
                   {user.role === "admin" ? "管理员" : "只读"}
                 </span>
               </span>
             )}
-            <button
-              onClick={handleLogout}
-              className="text-sm text-red-500 hover:text-red-700 cursor-pointer"
-            >
-              退出登录
-            </button>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => { setShowPwdModal(true); setMobileOpen(false); setPwdError(""); }}
+                className="text-sm text-gray-500 hover:text-gray-700 cursor-pointer"
+              >
+                改密码
+              </button>
+              <button
+                onClick={handleLogout}
+                className="text-sm text-red-500 hover:text-red-700 cursor-pointer"
+              >
+                退出
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Change password modal */}
+      {showPwdModal && (
+        <div
+          className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4"
+          onClick={() => setShowPwdModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-lg max-w-md w-full p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-4">修改密码</h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">当前密码</label>
+                <input
+                  type="password"
+                  value={oldPwd}
+                  onChange={(e) => setOldPwd(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-gray-500 mb-1">新密码（至少 6 位）</label>
+                <input
+                  type="password"
+                  value={newPwd}
+                  onChange={(e) => setNewPwd(e.target.value)}
+                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+              {pwdError && (
+                <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-3 py-2">{pwdError}</div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={handleChangePassword}
+                  disabled={pwdSaving || !oldPwd || newPwd.length < 6}
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white text-sm font-medium px-4 py-2 rounded-lg transition cursor-pointer disabled:cursor-not-allowed"
+                >
+                  {pwdSaving ? "修改中..." : "确认修改"}
+                </button>
+                <button
+                  onClick={() => { setShowPwdModal(false); setOldPwd(""); setNewPwd(""); }}
+                  className="text-sm text-gray-500 hover:text-gray-700 px-3 py-2 cursor-pointer"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

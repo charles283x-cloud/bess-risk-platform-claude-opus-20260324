@@ -1,10 +1,13 @@
 import { getIronSession, IronSession } from "iron-session";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
+import { prisma } from "@/lib/db";
 
 export interface SessionData {
+  userId: string;
   username: string;
-  role: "admin" | "viewer";
+  displayName: string;
+  role: "admin" | "executive" | "viewer";
   isLoggedIn: boolean;
 }
 
@@ -27,21 +30,22 @@ export async function getSession(): Promise<IronSession<SessionData>> {
 export async function authenticate(
   username: string,
   password: string
-): Promise<{ username: string; role: "admin" | "viewer" } | null> {
-  const adminUser = process.env.ADMIN_USERNAME;
-  const adminPass = process.env.ADMIN_PASSWORD;
-  const viewerUser = process.env.VIEWER_USERNAME;
-  const viewerPass = process.env.VIEWER_PASSWORD;
+): Promise<{ id: string; username: string; displayName: string; role: "admin" | "executive" | "viewer" } | null> {
+  const user = await prisma.user.findUnique({ where: { username } });
+  if (!user || !user.isActive) return null;
 
-  if (username === adminUser && adminPass && bcrypt.compareSync(password, adminPass)) {
-    return { username, role: "admin" };
-  }
+  const ok = bcrypt.compareSync(password, user.passwordHash);
+  if (!ok) return null;
 
-  if (username === viewerUser && viewerPass && bcrypt.compareSync(password, viewerPass)) {
-    return { username, role: "viewer" };
-  }
+  // v4 backward compat: legacy 'viewer' role normalized to 'executive'
+  const normalizedRole = user.role === "viewer" ? "executive" : user.role;
 
-  return null;
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.displayName,
+    role: normalizedRole as "admin" | "executive" | "viewer",
+  };
 }
 
 export async function requireAuth(): Promise<SessionData> {
@@ -58,4 +62,16 @@ export async function requireAdmin(): Promise<SessionData> {
     throw new Error("Forbidden");
   }
   return session;
+}
+
+export async function requireExecutive(): Promise<SessionData> {
+  const session = await requireAuth();
+  if (session.role !== "executive") {
+    throw new Error("Forbidden");
+  }
+  return session;
+}
+
+export function hashPassword(password: string): string {
+  return bcrypt.hashSync(password, 10);
 }

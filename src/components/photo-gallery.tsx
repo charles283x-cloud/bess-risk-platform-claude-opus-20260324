@@ -238,16 +238,11 @@ export default function PhotoGallery({
                       className="w-full h-full object-cover transition group-hover:scale-105"
                       loading="lazy"
                     />
-                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2">
-                      {p.takenAt && (
-                        <p className="text-xs text-white/90 font-medium">
-                          {formatDateTime(p.takenAt)}
-                        </p>
-                      )}
-                      {p.description && (
+                    {p.description && (
+                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                         <p className="text-xs text-white/75 truncate">{p.description}</p>
-                      )}
-                    </div>
+                      </div>
+                    )}
                     {isAdmin && (
                       <button
                         onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}

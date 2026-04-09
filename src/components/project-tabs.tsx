@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ProjectOverview from "@/components/project-overview";
+import WeeklyReportTable from "@/components/weekly-report-table";
+import PendingDecisionPanel from "@/components/pending-decision-panel";
 import ChecklistTable from "@/components/checklist-table";
 import MilestoneTable from "@/components/milestone-table";
 import ChangeRequestTable from "@/components/change-request-table";
@@ -87,6 +89,7 @@ interface ProjectTabsProps {
     takenAt: string | null;
     uploadedAt: string;
   }>;
+  summary: string | null;
   reports: Array<{
     id: string;
     title: string;
@@ -102,6 +105,7 @@ interface ProjectTabsProps {
 
 const tabs = [
   { key: "overview", label: "项目概述" },
+  { key: "reports", label: "项目周报" },
   { key: "checklist", label: "检查清单" },
   { key: "milestones", label: "里程碑" },
   { key: "changes", label: "变更决策" },
@@ -121,6 +125,7 @@ export default function ProjectTabs({
   contracts,
   documents,
   photos,
+  summary,
   reports,
   projectId,
   isAdmin,
@@ -193,6 +198,13 @@ export default function ProjectTabs({
       {/* Tab content */}
       {activeTab === "overview" && (
         <ProjectOverview
+          summary={summary}
+          projectId={projectId}
+          isAdmin={isAdmin}
+        />
+      )}
+      {activeTab === "reports" && (
+        <WeeklyReportTable
           reports={reports}
           projectId={projectId}
           isAdmin={isAdmin}
@@ -213,11 +225,14 @@ export default function ProjectTabs({
         />
       )}
       {activeTab === "changes" && (
-        <ChangeRequestTable
-          changes={changeRequests}
-          projectId={projectId}
-          isAdmin={isAdmin}
-        />
+        <>
+          <ChangeRequestTable
+            changes={changeRequests}
+            projectId={projectId}
+            isAdmin={isAdmin}
+          />
+          <PendingDecisionPanel projectId={projectId} isAdmin={isAdmin} />
+        </>
       )}
       {activeTab === "payments" && (
         <PaymentTable

@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIronSession } from "iron-session";
+import { resolveRoleRedirect } from "@/lib/routing-rules";
 
 interface SessionData {
   username: string;
-  role: "admin" | "viewer";
+  role: "admin" | "executive" | "viewer";
   isLoggedIn: boolean;
 }
 
 const publicPaths = ["/login", "/api/auth/login"];
-const writeMethodsForViewer = ["POST", "PUT", "PATCH", "DELETE"];
+const writeMethodsForReadOnly = ["POST", "PUT", "PATCH", "DELETE"];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -33,10 +34,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  // Viewer can only use GET
+  // v4 backward compat: legacy 'viewer' role normalized to 'executive'
+  // (handles deployment window where DB UPDATE hasn't run yet)
+  const effectiveRole = session.role === "viewer" ? "executive" : session.role;
+
+  // v4 role-based routing enforcement (page routes only, not API)
+  if (!pathname.startsWith("/api/")) {
+    const redirectTo = resolveRoleRedirect(pathname, effectiveRole);
+    if (redirectTo) {
+      return NextResponse.redirect(new URL(redirectTo, request.url));
+    }
+  }
+
+  // Read-only roles (executive, viewer) cannot use write methods on API
+  // Note: viewer here is the legacy DB value; effectiveRole has already normalized it
   if (
-    session.role === "viewer" &&
-    writeMethodsForViewer.includes(request.method) &&
+    effectiveRole !== "admin" &&
+    writeMethodsForReadOnly.includes(request.method) &&
     pathname.startsWith("/api/") &&
     !pathname.startsWith("/api/auth/")
   ) {

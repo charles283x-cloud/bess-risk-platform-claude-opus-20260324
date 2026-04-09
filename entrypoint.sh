@@ -88,6 +88,53 @@ CREATE TABLE IF NOT EXISTS weekly_reports (
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 CREATE INDEX IF NOT EXISTS idx_weekly_reports_project_id ON weekly_reports(project_id);
+
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS summary TEXT;
+
+CREATE TABLE IF NOT EXISTS users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  username VARCHAR(50) UNIQUE NOT NULL,
+  password_hash VARCHAR(100) NOT NULL,
+  display_name VARCHAR(100) NOT NULL,
+  role VARCHAR(20) NOT NULL,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Seed default admin/viewer accounts if users table is empty
+INSERT INTO users (username, password_hash, display_name, role)
+SELECT 'admin', '$2b$10$Iv/zGOyGjOPjzCWbB373sOtwbSeK5UXyhnO6U6PFbhuL5wTYt9Bx2', '系统管理员', 'admin'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'admin');
+
+INSERT INTO users (username, password_hash, display_name, role)
+SELECT 'viewer', '$2b$10$AJQ/3CDflA8i0a/qxq93/e5LS4dUIsl33pHfYsCRtOSQwbgzotXPu', '查看者', 'viewer'
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'viewer');
+
+-- v4: 角色化界面重构
+ALTER TABLE weekly_reports ADD COLUMN IF NOT EXISTS next_week_tasks TEXT;
+ALTER TABLE weekly_reports ADD COLUMN IF NOT EXISTS blockers TEXT;
+
+CREATE TABLE IF NOT EXISTS pending_decisions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  project_id UUID NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  weekly_report_id UUID REFERENCES weekly_reports(id) ON DELETE SET NULL,
+  title VARCHAR(300) NOT NULL,
+  description TEXT,
+  impact_note VARCHAR(300),
+  status VARCHAR(20) NOT NULL DEFAULT 'pending'
+    CHECK (status IN ('pending', 'decided', 'withdrawn')),
+  decision_notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  decided_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_pending_decisions_status_project
+  ON pending_decisions (status, project_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_pending_decisions_project
+  ON pending_decisions (project_id);
+
+-- 现有 viewer 角色升级为 executive（v4 角色重构）
+UPDATE users SET role='executive' WHERE role='viewer';
 EOSQL
 
 # Create _prisma_migrations table if needed (so Prisma client doesn't complain)

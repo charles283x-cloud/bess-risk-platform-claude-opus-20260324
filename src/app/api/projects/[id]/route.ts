@@ -57,6 +57,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
           targetEndDate: body.targetEndDate ? new Date(body.targetEndDate) : null,
         }),
         ...(body.notes !== undefined && { notes: body.notes }),
+        ...(body.summary !== undefined && { summary: body.summary }),
         ...(body.isHighRisk !== undefined && { isHighRisk: body.isHighRisk }),
       },
       include: {
